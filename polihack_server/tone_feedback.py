@@ -5,12 +5,10 @@ import joblib
 import librosa
 import numpy as np
 import soundfile as sf
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier
-from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
 
 
 def extract_pitch_features(audio_file):
@@ -27,17 +25,6 @@ def extract_pitch_features(audio_file):
         print("Error occurred while saving denoised audio:", e)
 
     y_clean, sr_clean = librosa.load('polihack_server/resources/clean_sound/clean.wav')
-
-    # mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    #
-    # mfccs_mean = np.mean(mfccs, axis=1)
-    # mfccs_std = np.std(mfccs, axis=1)
-    # mfccs_min = np.min(mfccs, axis=1)
-    # mfccs_max = np.max(mfccs, axis=1)
-    #
-    # features = np.hstack([mfccs_mean, mfccs_std, mfccs_min, mfccs_max])
-    #
-    # return features
 
     hop_size = 512
     pitch_tracker = aubio.pitch("yin", hop_size, hop_size, sr_clean)
@@ -73,7 +60,6 @@ labels_varied = [1] * len(features_varied)
 
 X = np.vstack([features_monotone, features_varied])
 y = np.hstack([labels_monotone, labels_varied])
-
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
