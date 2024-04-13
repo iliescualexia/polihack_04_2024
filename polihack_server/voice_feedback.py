@@ -1,10 +1,32 @@
 import json
 import re
+from sklearn.preprocessing import StandardScaler
+import joblib
+import numpy as np
+
 from openai import OpenAI
-import soundfile
+from tone_feedback import extract_pitch_features
 
 
-class VoiceFeedback:
+def is_monotone(audio_file):
+    scaler = StandardScaler()
+    model = joblib.load('polihack_server/resources/model/monotone_classifier_model.pkl')
+
+    features = np.array([extract_pitch_features(audio_file)])
+    scaled_features = scaler.fit_transform(features.reshape(1, -1))
+
+    prediction = model.predict(features)
+    return prediction[0] == 0
+
+
+class Feedback:
+    def __init__(self, tone, stuttering, pauses):
+        self.tone = tone
+        self.stuttering = stuttering
+        self.pauses = pauses
+
+
+class VoiceAnalyzer:
     def __init__(self):
         self.client = OpenAI()
 
@@ -18,7 +40,8 @@ class VoiceFeedback:
                 model="whisper-1",
                 response_format="verbose_json",
                 timestamp_granularities=["word"],
-                prompt=""
+                prompt="Transcribe a public speech, incorporating pauses between words as ellipses '...' to represent "
+                       "moments of hesitation or stuttering by the speaker."
             )
 
             pretty_json = json.dumps(transcript.words, indent=4)
@@ -26,8 +49,6 @@ class VoiceFeedback:
 
             print(find_pauses(transcript.words))
             print(find_pauses_between_words(transcript.words))
-
-            analyze_tone(audio_file_path)
 
             return transcript.words
 
@@ -57,7 +78,3 @@ def find_pauses_between_words(words):
         prev_end = word_data['end']
     return count
 
-
-def analyze_tone(filename):
-    audio_samples, sample_rate = soundfile.read(filename, dtype='int16')
-    print(audio_samples)

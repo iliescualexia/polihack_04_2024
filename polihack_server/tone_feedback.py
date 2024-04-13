@@ -1,11 +1,16 @@
-import librosa
-import joblib, os
-import numpy as np
+import os
+
 import aubio
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+import joblib
+import librosa
+import numpy as np
 import soundfile as sf
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from xgboost import XGBClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 
 def extract_pitch_features(audio_file):
@@ -16,12 +21,23 @@ def extract_pitch_features(audio_file):
     clean_signal = librosa.istft(librosa.stft(y) - noise_estimated)
 
     try:
-        sf.write('resources/clean_sound/clean.wav', clean_signal, sr)
-        print("Denoised audio saved successfully.")
+        sf.write('polihack_server/resources/clean_sound/clean.wav', clean_signal, sr)
+        print("Denoised audio saved successfully")
     except Exception as e:
         print("Error occurred while saving denoised audio:", e)
 
-    y_clean, sr_clean = librosa.load('resources/clean_sound/clean.wav')
+    y_clean, sr_clean = librosa.load('polihack_server/resources/clean_sound/clean.wav')
+
+    # mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    #
+    # mfccs_mean = np.mean(mfccs, axis=1)
+    # mfccs_std = np.std(mfccs, axis=1)
+    # mfccs_min = np.min(mfccs, axis=1)
+    # mfccs_max = np.max(mfccs, axis=1)
+    #
+    # features = np.hstack([mfccs_mean, mfccs_std, mfccs_min, mfccs_max])
+    #
+    # return features
 
     hop_size = 512
     pitch_tracker = aubio.pitch("yin", hop_size, hop_size, sr_clean)
@@ -44,8 +60,8 @@ def extract_pitch_features(audio_file):
     return [mean_pitch, std_pitch, max_pitch, min_pitch]
 
 
-monotone_dir = 'resources/monotone_samples'
-varied_dir = 'resources/varied_tones_samples'
+monotone_dir = 'polihack_server/resources/monotone_samples'
+varied_dir = 'polihack_server/resources/varied_tones_samples'
 
 monotone_files = [os.path.join(monotone_dir, file) for file in os.listdir(monotone_dir) if file.endswith('.mp3')]
 features_monotone = [extract_pitch_features(file) for file in monotone_files]
@@ -58,14 +74,23 @@ labels_varied = [1] * len(features_varied)
 X = np.vstack([features_monotone, features_varied])
 y = np.hstack([labels_monotone, labels_varied])
 
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 clf = RandomForestClassifier(random_state=42)
 clf.fit(X_train, y_train)
 
-y_pred = clf.predict(X_test)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-joblib.dump(clf, 'resources/model/monotone_classifier_model.pkl')
+scores = cross_val_score(clf, X, y, cv=cv, scoring='accuracy')
+print("Mean Accuracy:", scores.mean())
+print("Standard Deviation of Accuracy:", scores.std())
 
-accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
+y_pred_test = clf.predict(X_test)
+accuracy_test = accuracy_score(y_test, y_pred_test)
+print("Accuracy on the test set:", accuracy_test)
+
+joblib.dump(clf, 'polihack_server/resources/model/monotone_classifier_model.pkl')
