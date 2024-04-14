@@ -28,10 +28,6 @@ class ReportProvider with ChangeNotifier{
     final url = Uri.parse('https://ece0-5-2-197-133.ngrok-free.app/upload');
     final audioFileSent = File(audioFilePath);
     final videoFileSent = File(sampleVideo);
-    // VideoPlayerController controller = new VideoPlayerController.file(sampleVideo);
-    // if(controller.value.duration.inSeconds < 30){
-    //
-    // }
     final request = http.MultipartRequest('POST', url);
     request.files.add(
       await http.MultipartFile.fromPath('file1', audioFile.path),
@@ -150,7 +146,7 @@ class ReportProvider with ChangeNotifier{
   }
   String evaluatePosture(){
     if(_report!.badPosturePercentage > 35.0){
-      return "Be careful, you have a pretty bad posture. You stayed " + _report!.badPosturePercentage.toString()  +" looking like the Hunchback of Notre Dame";
+      return "Be careful, you have a pretty bad posture. You stayed " + _report!.badPosturePercentage.toStringAsFixed(2)  +"% looking like the Hunchback of Notre Dame";
     }
     else{
       return "Congrats. You maintained a correct posture during your presentation";

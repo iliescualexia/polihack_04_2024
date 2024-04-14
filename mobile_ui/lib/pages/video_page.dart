@@ -8,6 +8,8 @@ import 'package:mobile_ui/models/feedback_mapping_extension.dart';
 import 'package:mobile_ui/models/feedback_model.dart';
 import 'package:mobile_ui/navigation/route_type.dart';
 import 'package:mobile_ui/provides/report_provider.dart';
+import 'package:mobile_ui/utils/app_colors.dart';
+import 'package:mobile_ui/utils/app_text_style.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -55,12 +57,21 @@ class _VideoPageState extends State<VideoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Preview'),
+          iconTheme: IconThemeData(
+            color: AppColors.ivory,
+          ),
+        title: const Text(
+            'Preview',
+          style: AppTextStyle(
+            color: AppColors.ivory
+          ),
+        ),
         elevation: 0,
-        backgroundColor: Colors.black26,
+        backgroundColor: Colors.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
+            color: AppColors.ivory,
             onPressed: () {
               _videoPlayerController.pause();
               _extractAudio();

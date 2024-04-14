@@ -224,9 +224,3 @@ class OverallFeedbackPage extends StatelessWidget {
     );
   }
 }
-
-void main() {
-  runApp(MaterialApp(
-    home: OverallFeedbackPage(),
-  ));
-}
