@@ -31,7 +31,7 @@ def convert_audio_file(audio_file):
 
 def convert_video_file(video_file):
     filename = video_file.filename
-    file_path = os.path.join("polihack_server/resources/received_data", filename)
+    file_path = os.path.join("polihack_server/resources/received_data", "video-")
     video_file.save(file_path)
     random_id = uuid.uuid4()
     mp4_file_path = os.path.splitext(file_path)[0] + str(random_id) + '.mp4'

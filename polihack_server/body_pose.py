@@ -14,8 +14,8 @@ def get_posture_feedback(video_file):
     # cap = cv2.VideoCapture(0)
 
     bad_posture_frames = 0
-    total_frames = 0
-    shoulder_y_threshold = 0.08
+    total_frames = 1
+    shoulder_y_threshold = 0.05
     max_distance = 0
 
     ret, frame = cap.read()
@@ -43,7 +43,7 @@ def get_posture_feedback(video_file):
 
             max_distance = max(distance_right, distance_left)
 
-    while cap.isOpened():
+    while True:
         ret, frame = cap.read()
         if not ret:
             break
